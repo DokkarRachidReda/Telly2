@@ -22,38 +22,34 @@ import com.telly.service.UserService;
 @Controller
 public class UserController {
 
-	@RequestMapping("/login")
-	public String showLogin() {
-		return "login";
-	}
-	
-	@RequestMapping("/loggedout")
-	public String showLogout() {
-		return "loggedout";
-	}
-
-	@Autowired
-	UserService userService;
-	
-	@RequestMapping("/createaccount")
-	public String createAccount(Model model, Principal principal) {
+	@RequestMapping(value = "/reservebook", method = RequestMethod.POST)
+	public String createReserveBook(@Validated(FormValidationGroup.class) Reserve reserve, BindingResult result, Principal principal) {
 		
-		model.addAttribute("user", new User());
-		
-		return "createaccount";
-	}
-
-	@RequestMapping(value = "/createuser", method = RequestMethod.POST)
-	public String createUser(@Validated(FormValidationGroup.class) User user, BindingResult result) {
-		
-		if(result.hasErrors()) {
-			return "createaccount";
+		if (result.hasErrors()) {
+			return "reservebus";
 		}
 		
-		user.setAuthority("ROLE_USER");
-		user.setEnabled(true);
+		String username = principal.getName();
+		reserve.getUser().setUsername(username);
+		
+		reserveService.reserve(reserve);
+	
+		
+		return "home";
 
-		userService.create(user);
+	}
+
+    @RequestMapping(value = "/getreservations", method = RequestMethod.GET)
+	public String getReserveBook(@Validated(FormValidationGroup.class) Reserve reserve, Model model, Principal principal) {
+		
+		
+		String username = principal.getName();
+		reserve.getUser().setUsername(username);
+		
+		List<Reserve> reserves = reserveService.getReserves(username);
+		model.addAttribute("reserves", reserves);
+		System.out.println(reserves);
+	
 		
 		return "home";
 
